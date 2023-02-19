@@ -1,0 +1,118 @@
+This file contains the route calls which don't use mongoose ans
+direct mongoDB connection
+
+
+
+//greet directory
+app.get('/greet', (req, res) =>{
+    res.status(200).json({
+        messgae:"It Responsed Successfully",
+        status : "Success",
+        naveen : "Silly Boy"
+    })
+})
+
+app.get('/api/v1/health',(req, res) => {
+    res.status(400).json({
+
+    })
+})
+
+//expenses array in form of json
+const expenses = [
+    {id:1, name:"Movie", amount:200, desc:"Varisu"},
+    {id:2, name:"Food", amount :800, desc:"Daniel's Treat"},
+    {id:3, name:"Rent", amount :7500, desc:"Maintainace and Home Rent"}
+]
+
+const expenseDetails = [
+    {id:1, paymentMode:"UPI"},
+    {id:2, paymentMode:"Bank Transfer"},
+    {id:3, paymentMode:"Cash"}
+]
+
+//to check expenseDeatils
+app.get('/api/v1/expenseDetails', (req, res)=>
+{
+    res.status(200).json(expenseDetails);
+})
+
+//get expense response check
+app.get('/api/v1/expenses',(req, res) => {
+    res.status(200).json(expenses)
+})
+
+//response based on user input
+app.get('/api/v1/expenses/:id', (req, res)=>{
+    //console.log(req.params.id);
+    //looping through each json and matching the id
+    expenses.forEach(function(expen)
+    {
+        if(expen.id == req.params.id)
+        {
+            let response = {
+                id: req.params.id,
+                name : expen.name,
+                Amount : expen.amount,
+                Description : expen.desc,
+                PaymentMode : expenseDetails[(req.params.id)-1].paymentMode
+            }
+            res.status(200).json(response)
+            //res.send(expen, expenseDetails[req.params.id].payemntMode)
+        }
+    })
+    res.status(404).json({
+        message:"Requested page Not Found"
+    });
+})
+
+app.post('/api/v1/expenses', (req, res) =>{
+    //console.log(req.body);
+    let newEntry = {
+        id: expenses[expenses.length-1].id+1,
+        name : req.body.name,
+        amount : req.body.amount,
+        desc : req.body.desc
+    }
+
+    let newPaymentEntry = {
+        id: expenseDetails[expenseDetails.length-1].id+1,
+        paymentMode : req.body.PaymentMode
+    }
+    expenses.push(newEntry);
+    expenseDetails.push(newPaymentEntry);
+    res.send('Created new Expense')
+})
+
+//API call to delete an entry
+app.delete('/api/v1/expense/:id', (req, res) =>{
+    for(let i=0; i<expenseDetails.length; i++)
+    {
+        if(expenses[i].id == req.params.id)
+        {
+            expenses.splice(i,1);
+        }
+    }
+    res.send('Deleted')
+})
+
+//Api call to trigger update method(to update amount)
+app.put('/api/v1/expense/:id', (req, res) =>{
+    expenses.forEach(function(expen)
+    {
+        if(expen.id == req.params.id)
+        {
+            if(req.body.amount)
+            {
+                expen.amount = req.body.amount;
+            }
+            if(req.body.desc)
+            {
+                expen.desc = req.body.desc;
+            }
+            res.send("Updated Succesfully");
+        }
+    })
+    res.send("Updation failed or id not found");
+})
+
